@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gruppen-Manager</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--tx:#1b1f24;--mut:#6b7280;--bd:#e3e6ea;--ac:#2563eb;--ac2:#1d4ed8;--bad:#dc2626;--ok:#16a34a;--c1:#3b82f6;--c2:#16a34a;--c3:#f59e0b}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#181c22;--tx:#e8eaed;--mut:#9aa3ad;--bd:#2a3039;--ac:#3b82f6;--ac2:#60a5fa;--bad:#f87171;--ok:#4ade80}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:140px}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1}
+main{max-width:980px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:15px}
+button{font:inherit;border:0;border-radius:9px;padding:9px 13px;background:var(--ac);color:#fff;cursor:pointer;min-height:40px}
+button:active{background:var(--ac2)}
+button:disabled{opacity:.5}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button.dng{background:var(--bad)}
+button.sm{padding:4px 9px;min-height:30px;font-size:13px}
+input,select,textarea{font:inherit;width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx)}
+textarea{min-height:80px;resize:vertical}
+input[type=checkbox]{width:44px;height:26px;accent-color:var(--ac);flex:none}
+label.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--bd)}
+label.row:last-child{border:0}
+label.row input:not([type=checkbox]),label.row select{width:150px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.subtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.subtabs button{background:var(--card);color:var(--tx);border:1px solid var(--bd);white-space:nowrap;flex:none;border-radius:20px}
+.subtabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.bnav{position:fixed;left:0;right:0;bottom:0;display:none;background:var(--card);border-top:1px solid var(--bd);z-index:8}
+.bnav button{flex:1;background:transparent;color:var(--mut);border-radius:0;padding:6px 2px;min-height:56px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bnav button span{font-size:20px;line-height:1}
+.bnav button.on{color:var(--ac);background:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:3px 4px 3px 11px;font-size:14px;word-break:break-all}
+.chip button{padding:0;width:24px;height:24px;min-height:0;border-radius:50%;background:var(--bad);font-size:14px;line-height:1}
+.add{display:flex;gap:8px}
+.add button{flex:none}
+.item{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bd)}
+.item.col{flex-direction:column;align-items:stretch}
+.item:last-child{border:0}
+.item .t{flex:1;min-width:0;word-break:break-word}
+.item .t small{display:block;color:var(--mut)}
+.mut{color:var(--mut)}
+.badge{font-size:12px;border-radius:10px;padding:2px 8px;background:var(--bg);border:1px solid var(--bd);margin-left:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.kpi b{display:block;font-size:24px}
+.kpi span{color:var(--mut);font-size:13px}
+.chart{display:flex;align-items:flex-end;gap:2px;height:110px;margin-top:8px}
+.col{flex:1;display:flex;align-items:flex-end;gap:1px;height:100%}
+.col i{flex:1;border-radius:2px 2px 0 0;display:block}
+.clab{display:flex;gap:2px;font-size:10px;color:var(--mut);margin-top:3px}
+.clab span{flex:1;text-align:center;white-space:nowrap;overflow:visible}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.grp{cursor:pointer}
+.savebar{position:fixed;left:0;right:0;bottom:58px;background:var(--card);border-top:1px solid var(--bd);padding:8px 14px;display:flex;justify-content:center;z-index:7}
+.savebar button{width:100%;max-width:400px}
+#toast{position:fixed;left:50%;bottom:130px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none;max-width:90%;z-index:10}
+#toast.show{opacity:1}
+.login{max-width:360px;margin:8vh auto}
+.err{color:var(--bad)}
+.code{font-size:44px;font-weight:700;letter-spacing:8px;text-align:center;margin:6px 0}
+hr{border:0;border-top:1px solid var(--bd);margin:16px 0}
+.days{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.days label{display:flex;align-items:center;gap:3px;font-size:13px;border:1px solid var(--bd);border-radius:8px;padding:3px 7px}
+.days input{width:auto;height:auto}
+.mact{background:var(--bg);border-radius:10px;padding:10px;margin-top:6px}
+.mact input{margin-bottom:8px}
+@media(min-width:820px){.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.two .card{margin:0}}
+</style>
+</head>
+<body>
+<header><h1 id="title">🛡 Gruppen-Manager</h1><span id="hdr"></span></header>
+<main id="app"></main>
+<div id="savebar" class="savebar" style="display:none"><button data-act="save">💾 Speichern</button></div>
+<nav id="bnav" class="bnav"></nav>
+<div id="toast"></div>
+<script>
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const app = $('#app');
+let me = null, meta = null, groups = [], cur = null, tab = 'uebersicht', info = null, evTimer = null, memT = null, loginStop = false;
+let mem = { q: '', sort: 'last', page: 0, data: null, open: null };
+let ev = { items: [], f: 'all' };
+const ROLE = { super: 'Owner', creator: 'Gruppen-Besitzer', admin: 'Admin' };
+
+async function api(method, url, body) {
+  const r = await fetch(url, {
+    method, credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'dash' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && !url.includes('/login') && !url.includes('/tglogin')) { showLogin(); throw new Error('Nicht angemeldet'); }
+  if (!r.ok) throw new Error(d.error || 'Fehler ' + r.status);
+  return d;
+}
+let tt;
+function toast(msg, isErr) {
+  const t = $('#toast'); t.textContent = (isErr ? '❗ ' : '✅ ') + msg; t.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+async function run(fn, okMsg) {
+  try { const r = await fn(); if (okMsg) toast(okMsg); return r; } catch (e) { toast(e.message, true); }
+}
+const ago = (ts) => {
+  if (!ts) return '–';
+  const s = Math.max(0, (Date.now() - ts) / 1000);
+  if (s < 90) return 'gerade eben';
+  if (s < 5400) return 'vor ' + Math.round(s / 60) + ' Min';
+  if (s < 172800) return 'vor ' + Math.round(s / 3600) + ' Std';
+  return 'vor ' + Math.round(s / 86400) + ' Tg';
+};
+const dt = (ts) => new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+const val = (id) => ($('#' + id) ? $('#' + id).value : '');
+const chrome = (chatMode) => { $('#bnav').style.display = chatMode ? 'flex' : 'none'; $('#savebar').style.display = 'none'; };
+
+/* ------------------------------ Login ------------------------------ */
+async function showLogin() {
+  clearInterval(evTimer); loginStop = true; chrome(false); cur = null;
+  $('#hdr').innerHTML = '';
+  let lm = { password: true, telegram: false };
+  try { lm = await api('GET', '/api/loginmethods'); } catch (_) {}
+  app.innerHTML = '<div class="card login"><h3>🔐 Anmelden</h3>' +
+    (lm.telegram ? '<p class="mut" style="margin-top:0">Melde dich mit deinem Telegram-Account an. Du siehst nur Gruppen, in denen du Admin bist.</p><button id="tgl" style="width:100%">✈️ Mit Telegram anmelden</button><div id="tgbox"></div>' : '') +
+    (lm.telegram && lm.password ? '<hr>' : '') +
+    (lm.password ? '<input id="pw" type="password" placeholder="Owner-Passwort" autocomplete="current-password"><div class="btns"><button id="go" class="' + (lm.telegram ? 'sec' : '') + '" style="width:100%">Mit Passwort anmelden</button></div>' : '') +
+    '<p class="err" id="lerr"></p></div>';
+  if (lm.password) {
+    const go = async () => {
+      try { await api('POST', '/api/login', { password: $('#pw').value }); await init(); }
+      catch (e) { $('#lerr').textContent = e.message; }
+    };
+    $('#go').onclick = go;
+    $('#pw').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+  }
+  if (lm.telegram) $('#tgl').onclick = tgLogin;
+}
+async function tgLogin() {
+  $('#lerr').textContent = '';
+  let r;
+  try { r = await api('POST', '/api/tglogin/start'); } catch (e) { $('#lerr').textContent = e.message; return; }
+  loginStop = false;
+  $('#tgbox').innerHTML = '<p>1. Öffne den Bot in Telegram:</p><a href="' + esc(r.link) + '" target="_blank" rel="noopener"><button type="button" style="width:100%">✈️ Bot öffnen</button></a>' +
+    '<p>2. Tippe dort diese Zahl:</p><div class="code">' + esc(r.code) + '</div><p class="mut" id="tgstat">Warte auf Bestätigung …</p>' +
+    '<button class="sec sm" type="button" id="tgcancel">Abbrechen</button>';
+  $('#tgcancel').onclick = () => { loginStop = true; $('#tgbox').innerHTML = ''; };
+  for (let i = 0; i < 150 && !loginStop; i++) {
+    await sleep(2000);
+    if (loginStop) return;
+    const s = await api('GET', '/api/tglogin/poll?poll=' + r.poll).catch(() => null);
+    if (!s) continue;
+    if (s.status === 'ok') { loginStop = true; await init(); return; }
+    if (s.status === 'denied') { if ($('#tgstat')) $('#tgstat').textContent = '❌ Abgebrochen oder falsche Zahl. Bitte neu starten.'; return; }
+    if (s.status === 'expired') { if ($('#tgstat')) $('#tgstat').textContent = '⌛ Abgelaufen. Bitte neu starten.'; return; }
+    if (s.claimed && $('#tgstat')) $('#tgstat').textContent = 'Im Bot bestätigen … (Zahl antippen)';
+  }
+}
+async function init() {
+  try {
+    meta = await api('GET', '/api/meta');
+    me = await api('GET', '/api/me');
+    $('#title').textContent = '🛡 @' + meta.bot;
+    $('#hdr').innerHTML = '<span class="badge">' + esc(me.name || 'Owner') + (me.sup ? ' · Owner' : '') + '</span> <button class="sec sm" data-act="logout">Abmelden</button>';
+    await showHome();
+  } catch (e) { if (e.message !== 'Nicht angemeldet') showLogin(); }
+}
+
+/* ------------------------------ Startseite ------------------------------ */
+const fmtUp = (s) => Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+async function showHome() {
+  clearInterval(evTimer); cur = null; chrome(false);
+  const o = await api('GET', '/api/overview');
+  groups = o.chats;
+  const sup = me && me.sup;
+  const gb = sup ? await api('GET', '/api/gbans').catch(() => ({ items: [] })) : { items: [] };
+  const bk = sup ? await api('GET', '/api/backups').catch(() => ({ items: [] })) : { items: [] };
+  const ss = sup ? await api('GET', '/api/sessions').catch(() => ({ items: [] })) : { items: [] };
+  let h = '<div class="grid"><div class="kpi"><b>' + o.chats.length + '</b><span>' + (sup ? 'Gruppen' : 'Deine Gruppen') + '</span></div>' +
+    (sup ? '<div class="kpi"><b>' + fmtUp(o.uptime) + '</b><span>Laufzeit</span></div><div class="kpi"><b>' + o.rss + ' MB</b><span>RAM</span></div>' : '') + '</div>' +
+    '<div class="card"><h3>Gruppen</h3>' + (o.chats.length ? o.chats.map((c) =>
+      '<div class="item grp" data-act="open" data-v="' + esc(c.id) + '"><div class="t"><b>' + esc(c.title) + '</b>' +
+      (c.locked ? '<span class="badge">🔒</span>' : '') + (c.raid ? '<span class="badge">🚨</span>' : '') +
+      '<small>' + c.msgs + ' Nachrichten heute · ' + c.members + ' bekannte Mitglieder</small></div><span>›</span></div>').join('')
+      : (sup ? '<p class="mut">Noch keine Gruppen. Füge den Bot einer Supergruppe hinzu, mach ihn zum Admin und sende dort /setup.</p>'
+        : '<p class="mut">Keine Gruppen gefunden. Du siehst hier nur Gruppen, in denen du <b>Admin</b> bist und in denen der Bot aktiv ist (dort muss der Bot mindestens einmal eine Nachricht gesehen haben).</p>')) + '</div>';
+  if (sup) {
+    h += '<div class="card"><h3>📣 Rundnachricht an alle Gruppen</h3><textarea id="bc" placeholder="Text …"></textarea>' +
+      '<div class="btns"><button data-act="broadcast">Senden</button><a href="/api/backup"><button class="sec" type="button">💾 Backup (data.json)</button></a></div></div>' +
+      '<div class="card"><h3>🌍 Globale Bann-Liste</h3><p class="mut" style="margin:0 0 8px">Bannt den User in allen Gruppen und sofort beim Beitritt zu neuen.</p>' +
+      (gb.items.length ? gb.items.map((g) => '<div class="item"><div class="t"><b>' + esc(g.id) + '</b><small>' + dt(g.t) + (g.reason ? ' · ' + esc(g.reason) : '') + '</small></div><button class="sm sec" data-act="ungban" data-v="' + esc(g.id) + '">Aufheben</button></div>').join('') : '<p class="mut">Liste leer.</p>') +
+      '<input id="gb-id" inputmode="numeric" placeholder="User-ID (Zahl)" style="margin-top:8px"><input id="gb-reason" placeholder="Grund (optional)" style="margin-top:6px"><div class="btns"><button class="dng" data-act="gban">🌍 Global bannen</button></div></div>' +
+      '<div class="card"><h3>🗄 Automatische Backups</h3><p class="mut" style="margin:0 0 8px">Täglich ein Stand, die letzten 7 Tage (Ordner <code>backups/</code>).</p>' +
+      (bk.items.length ? bk.items.map((f) => '<div class="item"><div class="t">' + esc(f.name) + '<small>' + Math.round(f.size / 1024) + ' KB</small></div><a href="/api/backups/' + esc(f.name) + '"><button class="sm sec" type="button">⬇️</button></a><button class="sm sec" data-act="restore" data-v="' + esc(f.name) + '">♻️ Wiederherstellen</button></div>').join('') : '<p class="mut">Noch keine – das erste Backup entsteht kurz nach dem Start.</p>') + '</div>' +
+      '<div class="card"><h3>🔑 Angemeldete Web-Sitzungen</h3>' + (ss.items.length ? ss.items.map((x) =>
+        '<div class="item"><div class="t"><b>' + esc(x.name || 'Owner') + '</b>' + (x.username ? ' <span class="mut">@' + esc(x.username) + '</span>' : '') + (x.sup ? '<span class="badge">Owner</span>' : '') + (x.current ? '<span class="badge">du</span>' : '') +
+        '<small>' + (x.uid ? 'ID ' + esc(x.uid) + ' · ' : '') + esc(x.ip) + ' · seit ' + dt(x.since) + '</small></div><button class="sm sec" data-act="revoke" data-v="' + esc(x.id) + '">Abmelden</button></div>').join('') : '<p class="mut">Keine.</p>') + '</div>';
+  }
+  app.innerHTML = h;
+}
+
+/* ------------------------------ Navigation ------------------------------ */
+const NAV = [
+  { id: 'home', icon: '📊', label: 'Übersicht', tabs: [['uebersicht', 'Dashboard'], ['log', 'Log']] },
+  { id: 'protect', icon: '🛡', label: 'Schutz', tabs: [['regeln', 'Regeln'], ['beitritt', 'Beitritt'], ['strafen', 'Strafen'], ['listen', 'Listen'], ['sperren', 'Sperren']] },
+  { id: 'content', icon: '💬', label: 'Inhalte', tabs: [['willkommen', 'Willkommen'], ['auto', 'Automatik']] },
+  { id: 'people', icon: '👥', label: 'Mitglieder', tabs: [['mitglieder', 'Liste']] },
+  { id: 'more', icon: '⚙️', label: 'Mehr', tabs: [['nacht', 'Nachtmodus'], ['bericht', 'Berichte'], ['settings', 'Einstellungen']] },
+];
+const catOf = (t) => NAV.find((c) => c.tabs.some((x) => x[0] === t)) || NAV[0];
+const SAVE_TABS = ['regeln', 'beitritt', 'strafen', 'willkommen', 'nacht', 'bericht', 'settings'];
+
+async function openChat(id) {
+  cur = await api('GET', '/api/chat/' + id);
+  if (!groups.length) groups = (await api('GET', '/api/overview')).chats;
+  info = null; mem = { q: '', sort: 'last', page: 0, data: null, open: null }; ev = { items: [], f: 'all' };
+  tab = 'uebersicht';
+  renderChat();
+}
+function renderChat() {
+  clearInterval(evTimer);
+  const cat = catOf(tab);
+  chrome(true);
+  $('#bnav').innerHTML = NAV.map((c) => '<button data-act="cat" data-v="' + c.id + '" class="' + (c.id === cat.id ? 'on' : '') + '"><span>' + c.icon + '</span>' + c.label + '</button>').join('');
+  app.innerHTML =
+    '<div class="add" style="margin-bottom:8px"><button class="sec" data-act="home">←</button><select id="gsel">' +
+    groups.map((g) => '<option value="' + esc(g.id) + '"' + (g.id === cur.id ? ' selected' : '') + '>' + esc(g.title) + '</option>').join('') + '</select></div>' +
+    '<p class="mut" style="margin:0 0 8px;font-size:13px">' + esc(ROLE[cur.role] || '') + (cur.locked ? ' · <b>🔒 gesperrt</b>' : '') + (cur.raid ? ' · <b>🚨 Raid-Schutz aktiv</b>' : '') + '</p>' +
+    (cat.tabs.length > 1 ? '<div class="subtabs">' + cat.tabs.map(([k, l]) => '<button data-act="tab" data-v="' + k + '" class="' + (k === tab ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' : '') +
+    '<div id="pane">' + pane() + '</div>';
+  $('#savebar').style.display = SAVE_TABS.includes(tab) ? 'flex' : 'none';
+  afterRender();
+}
+function pane() {
+  return ({ uebersicht: pUeber, log: pLog, regeln: pRegeln, beitritt: pBeitritt, strafen: pStrafen, listen: pListen, sperren: pSperren,
+    willkommen: pWillkommen, auto: pAuto, mitglieder: pMitglieder, nacht: pNacht, bericht: pBericht, settings: pSettings })[tab]();
+}
+function afterRender() {
+  if (tab === 'uebersicht' || tab === 'settings') { loadInfo(); loadRights(); }
+  if (tab === 'mitglieder') loadMembers();
+  if (tab === 'log') { loadEvents(); evTimer = setInterval(loadEvents, 10000); }
+}
+async function loadInfo() {
+  info = await run(() => api('GET', '/api/chat/' + cur.id + '/info'));
+  if (!info) return;
+  if ($('#memcnt')) $('#memcnt').textContent = info.members == null ? '–' : info.members;
+  if ($('#admins')) $('#admins').innerHTML = info.admins.filter((a) => !a.bot).map((a) =>
+    '<div class="item"><div class="t"><b>' + esc(a.name) + '</b>' + (a.user ? ' <span class="mut">@' + esc(a.user) + '</span>' : '') +
+    '<small>ID ' + a.id + ' · ' + (a.status === 'creator' ? 'Besitzer' : 'Admin') + (a.title ? ' · ' + esc(a.title) : '') + '</small></div></div>').join('') || '<p class="mut">–</p>';
+}
+async function loadRights() {
+  const r = await run(() => api('GET', '/api/chat/' + cur.id + '/rights'));
+  const el = $('#rights'); if (!el || !r) return;
+  const o = (v) => (v ? '✅' : '❌');
+  el.innerHTML = !r.member ? '❌ Bot ist nicht (mehr) in dieser Gruppe.' : !r.admin ? '❌ Bot ist kein Admin.' :
+    o(r.del) + ' Nachrichten löschen<br>' + o(r.restrict) + ' Mitglieder sperren/bannen<br>' + o(r.pin) + ' Anheften';
+}
+
+/* ---------------------------- Bausteine ---------------------------- */
+const ACTS = [['delete', 'Nur löschen'], ['warn', 'Verwarnen'], ['mute', 'Stummschalten'], ['kick', 'Kicken'], ['ban', 'Bannen']];
+const sw = (k, l) => '<label class="row"><span>' + esc(l) + '</span><input type="checkbox" data-f="' + k + '"' + (cur.settings[k] ? ' checked' : '') + '></label>';
+const num = (k, l, min, max, v) => '<label class="row"><span>' + esc(l) + '</span><input type="number" data-f="' + k + '" min="' + min + '" max="' + max + '" value="' + (v !== undefined ? v : cur.settings[k]) + '"></label>';
+const actSel = (kind) => '<label class="row"><span>Aktion</span><select data-f="act.' + kind + '">' + ACTS.map(([v, l]) =>
+  '<option value="' + v + '"' + (cur.acts[kind] === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>';
+const box = (title, desc, body) => '<div class="card"><h3>' + title + '</h3>' + (desc ? '<p class="mut" style="margin:0 0 6px">' + desc + '</p>' : '') + body + '</div>';
+const chips = (list, act) => '<div class="chips">' + (list.length ? list.map((x) =>
+  '<span class="chip">' + esc(x) + '<button data-act="' + act + '" data-v="' + esc(x) + '">×</button></span>').join('') : '<span class="mut">leer</span>') + '</div>';
+const addRow = (id, ph, act) => '<div class="add"><input id="' + id + '" placeholder="' + esc(ph) + '"><button data-act="' + act + '">＋</button></div>';
+
+function chart(series, labels) {
+  const max = Math.max(1, ...series.flatMap((s) => s.vals));
+  const cols = labels.map((l, i) => '<div class="col" title="' + esc(l) + ': ' + series.map((s) => s.vals[i]).join(' / ') + '">' +
+    series.map((s) => '<i style="height:' + Math.max(1, Math.round(s.vals[i] / max * 100)) + '%;background:' + s.color + '"></i>').join('') + '</div>').join('');
+  const step = Math.ceil(labels.length / 6);
+  return '<div class="chart">' + cols + '</div><div class="clab">' + labels.map((l, i) => '<span>' + (i % step === 0 ? esc(l) : '') + '</span>').join('') + '</div>' +
+    (series.length > 1 ? '<div class="legend">' + series.map((s) => '<span><i style="background:' + s.color + '"></i>' + esc(s.name) + '</span>').join('') + '</div>' : '');
+}
+
+/* ------------------------------ Übersicht & Log ------------------------------ */
+function pUeber() {
+  const s = cur.stats, t = s.today;
+  const days = (s.hist || []).slice(-29).concat([Object.assign({ day: 'heute' }, t)]);
+  const labels = days.map((d) => d.day.slice(5));
+  const kp = (n, l) => '<div class="kpi"><b>' + n + '</b><span>' + l + '</span></div>';
+  return '<div class="grid"><div class="kpi"><b id="memcnt">…</b><span>Mitglieder</span></div>' + kp(t.msgs || 0, 'Nachrichten heute') + kp(t.joins || 0, 'Beitritte heute') +
+    kp(t.leaves || 0, 'Austritte heute') + kp(t.deleted || 0, 'Gelöscht heute') + kp(t.warns || 0, 'Verwarnungen heute') + '</div>' +
+    '<div class="two">' + box('💬 Nachrichten (30 Tage)', '', chart([{ name: 'Nachrichten', vals: days.map((d) => d.msgs || 0), color: 'var(--c1)' }], labels)) +
+    box('👥 Beitritte / Austritte', '', chart([{ name: 'Beitritte', vals: days.map((d) => d.joins || 0), color: 'var(--c2)' }, { name: 'Austritte', vals: days.map((d) => d.leaves || 0), color: 'var(--bad)' }], labels)) + '</div>' +
+    '<div style="height:12px"></div>' +
+    box('🕒 Aktivität nach Uhrzeit', 'Alle bisherigen Nachrichten, in der Zeitzone der Gruppe.', chart([{ name: 'Nachrichten', vals: (s.hours || new Array(24).fill(0)), color: 'var(--c3)' }], Array.from({ length: 24 }, (_, i) => i + 'h'))) +
+    '<div class="two">' + box('🏆 Top-User heute', '', s.top.length ? s.top.map((u, i) => '<div class="item"><div class="t">' + (i + 1) + '. ' + esc(u.name || '?') + '<small>' + esc(u.id) + '</small></div><b>' + u.n + '</b></div>').join('') : '<p class="mut">Noch keine Daten.</p>') +
+    box('🤖 Bot', '', '<div id="rights" class="mut">prüfe …</div><div class="btns"><button data-act="lock">🔒 Gruppe sperren</button><button class="sec" data-act="unlock">🔓 Entsperren</button></div>') + '</div>';
+}
+const EV_ICON = { filter: '🛡', warn: '⚠️', punish: '🚫', join: '➕', leave: '➖', mod: '🛠' };
+function pLog() {
+  return box('📜 Aktivitäts-Log', 'Die letzten 200 Ereignisse, aktualisiert sich alle 10 Sekunden.',
+    '<div class="btns" style="margin:0 0 8px">' + [['all', 'Alle'], ['filter', '🛡 Filter'], ['warn', '⚠️ Warns'], ['punish', '🚫 Strafen'], ['join', '➕ Beitritte'], ['leave', '➖ Austritte'], ['mod', '🛠 Mod']].map(([k, l]) =>
+      '<button class="sm ' + (ev.f === k ? '' : 'sec') + '" data-act="evf" data-v="' + k + '">' + l + '</button>').join('') + '</div><div id="evlist"></div>' +
+    '<div class="btns"><a href="/api/chat/' + esc(cur.id) + '/csv?type=events"><button class="sec sm" type="button">⬇️ Log als CSV</button></a></div>');
+}
+function renderEvents() {
+  const el = $('#evlist'); if (!el) return;
+  const items = ev.items.filter((e) => ev.f === 'all' || e.type === ev.f).slice(0, 100);
+  el.innerHTML = items.length ? items.map((e) => '<div class="item"><div class="t">' + (EV_ICON[e.type] || '•') + ' ' + esc(e.text) + '<small>' + dt(e.t) + '</small></div></div>').join('') : '<p class="mut">Keine Einträge.</p>';
+}
+async function loadEvents() {
+  const d = await api('GET', '/api/chat/' + cur.id + '/events').catch(() => null);
+  if (d) { ev.items = d.items; renderEvents(); }
+}
+
+/* ------------------------------ Schutz ------------------------------ */
+function pRegeln() {
+  return box('🎛 Schnell-Konfiguration', 'Presets überschreiben Schalter und Limits (Domains/Wörter bleiben). Danach unten anpassen.',
+    '<div class="btns">' + meta.presets.map((p) => '<button class="sec" data-act="preset" data-v="' + p + '">' + p + '</button>').join('') + '</div>') +
+    '<div style="height:12px"></div><div class="two">' +
+    box('🔗 Link-Filter', 'Löscht Links, deren Domain nicht in der Whitelist steht (Tab „Listen“).', sw('antilink', 'Aktiv') + actSel('link')) +
+    box('🤬 Wortfilter', 'Verbotene Wörter (Tab „Listen“).', sw('wordfilter', 'Aktiv') + actSel('word')) +
+    box('🌊 Anti-Flood', '', sw('flood', 'Aktiv') + num('floodLimit', 'Max. Nachrichten', 2, 30) + num('floodSeconds', 'Zeitfenster (Sek)', 1, 120, cur.floodSeconds) + actSel('flood') + num('floodMuteMinutes', 'Mute-Dauer (Min)', 1, 1440, cur.floodMuteMinutes)) +
+    box('♻️ Wiederholungen', 'Dieselbe Nachricht 3× in 60 Sek.', sw('antirepeat', 'Aktiv') + actSel('repeat')) +
+    box('🔠 CAPS-Filter', 'Nachrichten fast nur in Großbuchstaben.', sw('anticaps', 'Aktiv') + actSel('caps')) +
+    box('📢 Erwähnungs-Spam', '0 = aus', num('maxMentions', 'Max. @Erwähnungen', 0, 20) + actSel('mention')) +
+    box('📞 Kontaktdaten', 'E-Mail-Adressen und Telefonnummern in Nachrichten.', sw('antiemail', 'E-Mail-Adressen blockieren') + sw('antiphone', 'Telefonnummern blockieren') + actSel('contact')) +
+    box('🔤 Schrift-Filter', 'Welche Schriften blockiert werden: Tab „Sperren“.', actSel('script')) +
+    box('↪️ Weiterleitungen', '', sw('antiforward', 'Weiterleitungen löschen')) +
+    box('⏱ Slow-Modus', 'Pro User nur eine Nachricht pro Zeitraum (Admins ausgenommen). 0 = aus.', num('slowSeconds', 'Sekunden zwischen Nachrichten', 0, 3600)) +
+    box('🗑 Auto-Löschen', 'Nachrichten normaler User nach X Minuten löschen. 0 = aus.', num('autodel', 'Löschen nach (Min)', 0, 10080)) + '</div>';
+}
+function pBeitritt() {
+  return '<div class="two">' +
+    box('🤖 Captcha', 'Neue Mitglieder müssen einen Button drücken, sonst werden sie entfernt.', sw('captcha', 'Aktiv') + num('captchaTimeout', 'Zeit dafür (Sek)', 30, 3600, cur.captchaTimeout)) +
+    box('🚨 Raid-Schutz', 'Schaltet bei vielen Beitritten kurz das Captcha ein.', sw('antiraid', 'Aktiv') + num('raidLimit', 'Beitritte pro Minute', 3, 50)) +
+    box('🪪 Beitritts-Prüfung', 'Wird beim Betreten geprüft; Treffer werden entfernt.', sw('namefilter', 'Namen gegen Wortfilter prüfen (kick)') + sw('cas', 'CAS-Spammer-Datenbank (ban)') + sw('antibot', 'Von Usern hinzugefügte Bots entfernen')) +
+    box('🧑‍💻 Neulinge', 'Neue Mitglieder dürfen eine Zeit lang keine Links senden. 0 = aus.', num('newbieMinutes', 'Link-Sperre (Min)', 0, 1440)) +
+    box('📥 Beitrittsanfragen', 'Nur für Gruppen/Links mit „Beitritt per Admin-Genehmigung“. Der Bot braucht das Recht „Mitglieder hinzufügen/einladen“.',
+      '<label class="row"><span>Modus</span><select data-f="joinreq">' + [['off', 'Aus (Admins entscheiden)'], ['approve', 'Automatisch annehmen'], ['screen', 'Prüfen, dann annehmen/ablehnen']].map(([v, l]) =>
+        '<option value="' + v + '"' + (cur.joinreq === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label>') + '</div>';
+}
+function pStrafen() {
+  return '<div class="two">' + box('⚖️ Verwarnsystem', 'Wirkt, wenn eine Regel „Verwarnen“ nutzt.', num('warnLimit', 'Verwarnungen bis Strafe', 1, 20) + num('warnExpireDays', 'Verwarnungen verfallen nach (Tage, 0=nie)', 0, 365) +
+    '<label class="row"><span>Strafe</span><select data-f="warnAction">' + ['mute', 'kick', 'ban'].map((a) => '<option' + (cur.warnAction === a ? ' selected' : '') + '>' + a + '</option>').join('') + '</select></label>' +
+    num('muteMinutes', 'Mute-Dauer (Min)', 1, 525600, cur.muteMinutes)) +
+    box('🧹 Aufräumen', '', sw('delservice', 'Beitritts-/Austrittsmeldungen löschen') + sw('cleancmd', 'Admin-Befehle löschen')) + '</div>';
+}
+function pListen() {
+  return '<div class="two">' + box('🌐 Domain-Whitelist', 'Erlaubte Domains (inkl. Subdomains).', chips(cur.domains, 'rm-domains') + addRow('a-domains', 'example.com, t.me', 'add-domains')) +
+    box('🤬 Verbotene Wörter', 'Tipp: <code>wort*</code> trifft auch Endungen. Regex: <code>re:muster|zweites</code> (nur für Admins nutzen).', chips(cur.words, 'rm-words') + addRow('a-words', 'wort1, wort2', 'add-words')) + '</div>' +
+    '<div style="height:12px"></div>' +
+    box('⛔ Domain-Blacklist', 'Immer gesperrt – auch wenn der Link-Filter aus ist.', chips(cur.blockdomains, 'rm-blockdomains') + addRow('a-blockdomains', 'spam.com', 'add-blockdomains')) +
+    '<div style="height:12px"></div>' +
+    box('✅ Vom Filter ausgenommene User', 'Hinzufügen im Tab „Mitglieder“.', chips(cur.approved.map(String), 'rm-approved'));
+}
+function pSperren() {
+  const sw2 = (grp, labels, state) => Object.entries(labels).map(([k, l]) =>
+    '<label class="row"><span>' + esc(l) + '</span><input type="checkbox" data-' + grp + '="' + k + '"' + (state[k] ? ' checked' : '') + '></label>').join('');
+  return '<div class="two">' + box('🔒 Medien sperren', 'Angehakt = wird für normale User gelöscht.', sw2('lock', meta.locks, cur.locks)) +
+    box('🔤 Schriften blockieren', 'Aktion pro Verstoß: Tab „Regeln“ (aktuell: ' + esc(cur.acts.script) + ').', sw2('script', meta.scripts, cur.scripts)) + '</div>';
+}
+
+/* ------------------------------ Inhalte ------------------------------ */
+function pWillkommen() {
+  return '<div class="two">' + box('👋 Willkommensnachricht', 'Platzhalter: {name} {chat} {id}', sw('welcome', 'Aktiv') +
+    '<textarea data-f="welcomeText" style="margin-top:8px">' + esc(cur.welcomeText) + '</textarea>' + num('welcomeDeleteSec', 'Automatisch löschen nach (Sek, 0=nie)', 0, 86400, cur.welcomeDeleteSec)) +
+    box('🔘 Buttons unter der Willkommensnachricht', 'Bis zu 6 Link-Buttons, optional mit Regeln-Button.', sw('welcomeRulesBtn', 'Regeln-Button anzeigen') +
+      (cur.welcomeButtons.length ? cur.welcomeButtons.map((b, i) => '<div class="item"><div class="t"><b>' + esc(b.text) + '</b><small>' + esc(b.url) + '</small></div><button class="sm dng" data-act="rm-wbuttons" data-v="' + i + '">×</button></div>').join('') : '<p class="mut">keine Buttons</p>') +
+      '<input id="wb-text" placeholder="Button-Text" style="margin-top:8px"><input id="wb-url" placeholder="https://…" style="margin-top:6px"><div class="btns"><button data-act="add-wbuttons">Button hinzufügen</button></div>') +
+    box('🚪 Abschiedsnachricht', '', sw('goodbye', 'Aktiv') + '<textarea data-f="goodbyeText" style="margin-top:8px">' + esc(cur.goodbyeText) + '</textarea>') +
+    box('📜 Gruppenregeln', 'Abruf mit /rules. Captcha: Schutz → Beitritt.', '<textarea data-f="rules">' + esc(cur.rules) + '</textarea>') + '</div>';
+}
+const DAYS = [[1, 'Mo'], [2, 'Di'], [3, 'Mi'], [4, 'Do'], [5, 'Fr'], [6, 'Sa'], [0, 'So']];
+function pAuto() {
+  const row = (a, k, v, sub, extra) => '<div class="item"><div class="t"><b>' + esc(k) + '</b><small>' + esc(String(v).slice(0, 120)) + (extra || '') + '</small></div>' +
+    '<button class="sm dng" data-act="' + a + '" data-v="' + esc(sub) + '">×</button></div>';
+  const notes = Object.entries(cur.notes), trig = Object.entries(cur.triggers);
+  return '<div class="two">' +
+    box('📝 Notizen', 'Abruf in der Gruppe mit #name', (notes.length ? notes.map(([k, v]) => row('rm-notes', '#' + k, v, k)).join('') : '<p class="mut">keine</p>') +
+      '<input id="n-name" placeholder="Name" style="margin-top:8px"><textarea id="n-text" placeholder="Text" style="margin-top:6px;min-height:60px"></textarea><div class="btns"><button data-act="add-notes">Speichern</button></div>') +
+    box('💬 Trigger', 'Bot antwortet automatisch auf ein Stichwort.', (trig.length ? trig.map(([k, v]) => row('rm-triggers', k, v, k)).join('') : '<p class="mut">keine</p>') +
+      '<input id="t-key" placeholder="Stichwort" style="margin-top:8px"><textarea id="t-text" placeholder="Antwort" style="margin-top:6px;min-height:60px"></textarea><div class="btns"><button data-act="add-triggers">Speichern</button></div>') + '</div>' +
+    '<div style="height:12px"></div>' +
+    box('⏰ Zeitgesteuerte Nachrichten', 'Zeit in der Zeitzone der Gruppe (Mehr → Nachtmodus). Keine Tage gewählt = täglich.',
+      (cur.schedules.length ? cur.schedules.map((s, i) => row('rm-schedules', s.time + (s.pin ? ' 📌' : ''), s.text, i,
+        ' · ' + (s.days && s.days.length ? DAYS.filter(([d]) => s.days.includes(d)).map(([, n]) => n).join(' ') : 'täglich'))).join('') : '<p class="mut">keine</p>') +
+      '<input id="s-time" type="time" style="margin-top:8px"><div class="days">' + DAYS.map(([d, n]) => '<label><input type="checkbox" class="sd" value="' + d + '">' + n + '</label>').join('') + '</div>' +
+      '<textarea id="s-text" placeholder="Nachricht" style="min-height:60px"></textarea><label class="row"><span>Anheften</span><input type="checkbox" id="s-pin"></label><div class="btns"><button data-act="add-schedules">Hinzufügen</button></div>');
+}
+
+/* ------------------------------ Mitglieder ------------------------------ */
+function pMitglieder() {
+  return box('👥 Mitglieder', 'Der Bot kennt User, die geschrieben haben oder beigetreten sind, seit er in der Gruppe ist.',
+    '<input id="mq" placeholder="Suche: Name, @username, ID oder Notiz" value="' + esc(mem.q) + '">' +
+    '<select id="msort" style="margin-top:8px">' + [['last', 'Zuletzt aktiv'], ['n', 'Meiste Nachrichten'], ['first', 'Zuletzt hinzugekommen'], ['warns', 'Meiste Verwarnungen']].map(([v, l]) =>
+      '<option value="' + v + '"' + (mem.sort === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select><div id="mlist"></div>' +
+    '<div class="btns"><a href="/api/chat/' + esc(cur.id) + '/csv?type=members"><button class="sec sm" type="button">⬇️ Mitglieder als CSV</button></a></div>') +
+    box('🔍 User per ID verwalten', '', '<div data-scope><input data-uidin inputmode="numeric" placeholder="User-ID (Zahl)"><input data-min inputmode="numeric" placeholder="Minuten (optional, für Mute/Ban)">' + modBtns() + '</div>') +
+    '<div class="two">' + box('🔨 Gebannt (über den Bot)', '', cur.banned.length ? cur.banned.map((b) => '<div class="item"><div class="t"><b>' + esc(b.name || b.id) + '</b><small>ID ' + esc(b.id) + ' · ' + dt(b.t) + '</small></div><button class="sm sec" data-act="mod" data-v="unban" data-uid="' + esc(b.id) + '">Entbannen</button></div>').join('') : '<p class="mut">Niemand.</p>') +
+    box('⚠️ Verwarnt', '', cur.warns.length ? cur.warns.map((w) => '<div class="item"><div class="t"><b>' + esc(w.name || w.id) + '</b><small>ID ' + esc(w.id) + ' · ' + w.n + ' Verwarnung(en)</small></div><button class="sm sec" data-act="mod" data-v="resetwarns" data-uid="' + esc(w.id) + '">Zurücksetzen</button></div>').join('') : '<p class="mut">Niemand.</p>') + '</div>';
+}
+function modBtns() {
+  const b = (v, l, c) => '<button class="' + (c || 'sec') + ' sm" data-act="mod" data-v="' + v + '">' + l + '</button>';
+  return '<div class="btns">' + b('warn', '⚠️ Warnen') + b('unwarn', '➖ Warn −1') + b('mute', '🔇 Mute') + b('unmute', '🔈 Unmute') + b('kick', '👢 Kick') +
+    b('ban', '🔨 Ban', 'dng') + b('unban', '♻️ Unban') + b('approve', '✅ Ausnehmen') + b('unapprove', '❌ Ausnahme weg') + '</div>';
+}
+function renderMembers() {
+  const el = $('#mlist'); if (!el || !mem.data) return;
+  const d = mem.data, pages = Math.max(1, Math.ceil(d.total / 25));
+  el.innerHTML = '<p class="mut" style="margin:8px 0 0">' + d.total + ' Treffer</p>' + (d.items.length ? d.items.map((m) =>
+    '<div class="item col"><div class="t grp" data-act="mopen" data-v="' + esc(m.id) + '"><b>' + esc(m.name || '?') + '</b>' + (m.user ? ' <span class="mut">@' + esc(m.user) + '</span>' : '') +
+    (m.approved ? ' ✅' : '') + (m.banned ? ' 🔨' : '') + '<small>ID ' + esc(m.id) + ' · ' + m.n + ' Nachr. · aktiv ' + ago(m.last) + (m.warns ? ' · ⚠️ ' + m.warns : '') + '</small>' +
+    (m.note ? '<small>📝 ' + esc(m.note) + '</small>' : '') + '</div>' +
+    (mem.open === m.id ? '<div class="mact" data-scope data-uid="' + esc(m.id) + '"><input data-min inputmode="numeric" placeholder="Minuten (optional, für Mute/Ban)">' + modBtns() +
+      '<div class="add" style="margin-top:10px"><input data-note placeholder="Interne Notiz (leer = löschen)" value="' + esc(m.note) + '"><button data-act="mnote">📝</button></div></div>' : '') + '</div>').join('') : '<p class="mut">Keine Treffer.</p>') +
+    '<div class="btns"><button class="sec sm" data-act="mpage" data-v="-1"' + (d.page <= 0 ? ' disabled' : '') + '>‹ Zurück</button><span class="mut" style="align-self:center">Seite ' + (d.page + 1) + '/' + pages + '</span>' +
+    '<button class="sec sm" data-act="mpage" data-v="1"' + (d.page + 1 >= pages ? ' disabled' : '') + '>Weiter ›</button></div>';
+}
+async function loadMembers() {
+  const d = await run(() => api('GET', '/api/chat/' + cur.id + '/members?q=' + encodeURIComponent(mem.q) + '&sort=' + mem.sort + '&page=' + mem.page));
+  if (d) { mem.data = d; renderMembers(); }
+}
+
+/* ------------------------------ Mehr ------------------------------ */
+function pNacht() {
+  const n = cur.night;
+  return box('🌙 Nachtmodus', 'Sperrt die Gruppe automatisch – nur Admins können schreiben.',
+    '<label class="row"><span>Aktiv</span><input type="checkbox" data-f="night.enabled"' + (n.enabled ? ' checked' : '') + '></label>' +
+    '<label class="row"><span>Start</span><input type="time" data-f="night.from" value="' + esc(n.from) + '"></label>' +
+    '<label class="row"><span>Ende</span><input type="time" data-f="night.to" value="' + esc(n.to) + '"></label>' +
+    '<label class="row"><span>Zeitzone (UTC±)</span><input type="number" step="0.5" min="-12" max="14" data-f="night.tz" value="' + n.tz + '"></label>' +
+    '<p class="mut">Status: ' + (n.active ? '🌙 gerade aktiv' : '☀️ inaktiv') + ' · Die Zeitzone gilt auch für Zeitpläne, Berichte und die Uhrzeit-Statistik.</p>');
+}
+function pBericht() {
+  return '<div class="two">' + box('📰 Tagesbericht', 'Schickt täglich die Statistik des Tages. Zeit leer lassen = aus.',
+    '<label class="row"><span>Uhrzeit</span><input type="time" data-f="reportTime" value="' + esc(cur.reportTime) + '"></label>' +
+    '<label class="row"><span>Senden an</span><select data-f="reportTo"><option value="log"' + (cur.reportTo === 'log' ? ' selected' : '') + '>Log-Chat</option><option value="group"' + (cur.reportTo === 'group' ? ' selected' : '') + '>Die Gruppe selbst</option></select></label>') +
+    box('🗒 Log-Chat', 'Chat-ID, in die Verstöße zusätzlich gemeldet werden (leer = globaler Log). Der Bot muss dort schreiben dürfen.', '<input data-f="logChat" value="' + esc(cur.logChat) + '" placeholder="-100123456789">') + '</div>';
+}
+function pSettings() {
+  const others = groups.filter((g) => g.id !== cur.id);
+  return '<div class="two">' +
+    box('📨 Nachricht senden', '', '<textarea id="sendtxt" placeholder="Text …"></textarea><label class="row"><span>Anheften</span><input type="checkbox" id="send-pin"></label><div class="btns"><button data-act="send">Senden</button></div>') +
+    box('📋 Einstellungen kopieren', 'Übernimmt alle Einstellungen, Listen, Notizen und Trigger aus einer anderen deiner Gruppen.', others.length ?
+      '<select id="cfrom">' + others.map((g) => '<option value="' + esc(g.id) + '">' + esc(g.title) + '</option>').join('') + '</select><div class="btns"><button class="sec" data-act="copyfrom">Übernehmen</button></div>' : '<p class="mut">Keine andere Gruppe vorhanden.</p>') +
+    box('📦 Export / Import', 'Einstellungen dieser Gruppe als Datei sichern oder einspielen.',
+      '<a href="/api/chat/' + esc(cur.id) + '/export"><button class="sec" type="button">⬇️ Einstellungen exportieren</button></a>' +
+      '<textarea id="impjson" placeholder="Exportierten JSON-Inhalt hier einfügen …" style="margin-top:10px"></textarea><div class="btns"><button class="sec" data-act="import">⬆️ Importieren</button></div>') +
+    box('👮 Admins der Gruppe', '', '<div id="admins" class="mut">lade …</div>') +
+    box('🤖 Bot-Rechte', '', '<div id="rights" class="mut">prüfe …</div>') +
+    (cur.canOwn ? box('🔐 Web-Panel-Zugriff', 'Wer darf diese Gruppe im Web-Panel verwalten? (Nur der Gruppen-Besitzer kann das ändern.)',
+      '<label class="row"><span>Zugriff für</span><select data-f="webAccess"><option value="admins"' + (cur.webAccess !== 'creator' ? ' selected' : '') + '>Alle Admins</option><option value="creator"' + (cur.webAccess === 'creator' ? ' selected' : '') + '>Nur Gruppen-Besitzer</option></select></label>') : '') +
+    (cur.canOwn ? box('⚠️ Gefahrenzone', 'Löscht alle gespeicherten Daten dieser Gruppe im Bot.', '<button class="dng" data-act="forget">Gruppe aus dem Bot entfernen</button>') : '') + '</div>';
+}
+
+/* ---------------------------- Aktionen ---------------------------- */
+function collect() {
+  const body = {};
+  document.querySelectorAll('#pane [data-f]').forEach((el) => {
+    const v = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? undefined : Number(el.value)) : el.value;
+    if (v === undefined) return;
+    const p = el.dataset.f.split('.');
+    if (p.length === 2) { body[p[0]] = body[p[0]] || {}; body[p[0]][p[1]] = v; } else body[p[0]] = v;
+  });
+  return body;
+}
+async function post(sub, body, msg) {
+  const r = await run(() => api('POST', '/api/chat/' + cur.id + '/' + sub, body), msg);
+  if (r && r.id) {
+    cur = r;
+    $('#pane').innerHTML = pane();
+    if (tab === 'mitglieder') loadMembers(); else afterRender();
+  }
+  return r;
+}
+
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, v = el.dataset.v;
+  if (act === 'logout') { await run(() => api('POST', '/api/logout')); me = null; showLogin(); }
+  else if (act === 'home') run(showHome);
+  else if (act === 'open') run(() => openChat(v));
+  else if (act === 'cat') { const c = NAV.find((x) => x.id === v); tab = c.tabs.some((t) => t[0] === tab) ? tab : c.tabs[0][0]; if (catOf(tab).id !== v) tab = c.tabs[0][0]; renderChat(); }
+  else if (act === 'tab') { tab = v; renderChat(); }
+  else if (act === 'save') post('settings', collect(), 'Gespeichert');
+  else if (act === 'lock') post('action', { type: 'lock' }, 'Gruppe gesperrt');
+  else if (act === 'unlock') post('action', { type: 'unlock' }, 'Gruppe entsperrt');
+  else if (act === 'preset') { if (confirm('Preset „' + v + '“ anwenden? Schalter und Limits werden überschrieben.')) post('preset', { name: v }, 'Preset angewendet'); }
+  else if (act === 'copyfrom') { if (confirm('Einstellungen aus der gewählten Gruppe übernehmen? Die aktuellen werden überschrieben.')) post('copyfrom', { from: val('cfrom') }, 'Übernommen'); }
+  else if (act === 'import') {
+    let d; try { d = JSON.parse(val('impjson')); } catch (_) { return toast('Kein gültiges JSON', true); }
+    if (confirm('Importierte Einstellungen überschreiben die aktuellen. Fortfahren?')) post('import', { data: d }, 'Importiert');
+  }
+  else if (act === 'gban') {
+    const uid = val('gb-id').trim(); if (!uid) return toast('User-ID fehlt', true);
+    if (confirm('User ' + uid + ' in ALLEN Gruppen bannen?')) { const r = await run(() => api('POST', '/api/gban', { userId: uid, reason: val('gb-reason') })); if (r) { toast('In ' + r.ok + ' Gruppen gebannt'); run(showHome); } }
+  }
+  else if (act === 'ungban') {
+    if (confirm('Globalen Bann für ' + v + ' aufheben (in allen Gruppen entbannen)?')) { const r = await run(() => api('POST', '/api/ungban', { userId: v })); if (r) { toast('Entbannt'); run(showHome); } }
+  }
+  else if (act === 'restore') {
+    if (confirm('Backup ' + v + ' wiederherstellen? Der aktuelle Stand wird vorher gesichert, alle Einstellungen werden ersetzt.')) { const r = await run(() => api('POST', '/api/restore', { name: v })); if (r) { toast('Wiederhergestellt (' + r.chats + ' Gruppen)'); run(showHome); } }
+  }
+  else if (act === 'revoke') { const r = await run(() => api('POST', '/api/sessions/revoke', { id: v })); if (r) run(showHome); }
+  else if (act === 'forget') { if (confirm('Gruppe wirklich aus dem Bot entfernen? Alle Daten dieser Gruppe gehen verloren.')) { const r = await run(() => api('POST', '/api/chat/' + cur.id + '/forget'), 'Entfernt'); if (r) { groups = []; run(showHome); } } }
+  else if (act === 'send') { await post('action', { type: 'send', text: val('sendtxt'), pin: $('#send-pin') && $('#send-pin').checked }, 'Gesendet'); }
+  else if (act === 'broadcast') { if (!val('bc').trim()) return toast('Text fehlt', true); if (confirm('An alle Gruppen senden?')) { const r = await run(() => api('POST', '/api/broadcast', { text: val('bc') })); if (r) toast('Gesendet an ' + r.ok + '/' + r.total); } }
+  else if (act === 'mopen') { mem.open = mem.open === v ? null : v; renderMembers(); }
+  else if (act === 'mpage') { mem.page = Math.max(0, mem.page + Number(v)); loadMembers(); }
+  else if (act === 'evf') { ev.f = v; $('#pane').innerHTML = pane(); renderEvents(); }
+  else if (act === 'mnote') {
+    const sc = el.closest('[data-scope]'); const inp = sc && sc.querySelector('[data-note]');
+    post('action', { type: 'note', userId: sc ? sc.dataset.uid : '', text: inp ? inp.value : '' }, 'Notiz gespeichert');
+  }
+  else if (act === 'mod') {
+    const sc = el.closest('[data-scope]');
+    const uid = el.dataset.uid || (sc && (sc.dataset.uid || (sc.querySelector('[data-uidin]') || {}).value)) || '';
+    const mi = sc && sc.querySelector('[data-min]');
+    post('action', { type: v, userId: String(uid).trim(), minutes: mi ? mi.value : '' }, 'Erledigt');
+  }
+  else if (act.startsWith('add-')) {
+    const l = act.slice(4);
+    const b = { list: l, op: (l === 'notes' || l === 'triggers') ? 'set' : 'add' };
+    if (l === 'domains' || l === 'words' || l === 'blockdomains') b.value = val('a-' + l);
+    if (l === 'wbuttons') { b.text = val('wb-text'); b.url = val('wb-url'); }
+    if (l === 'notes') { b.name = val('n-name'); b.text = val('n-text'); }
+    if (l === 'triggers') { b.key = val('t-key'); b.text = val('t-text'); }
+    if (l === 'schedules') { b.time = val('s-time'); b.text = val('s-text'); b.pin = $('#s-pin').checked; b.days = [...document.querySelectorAll('.sd:checked')].map((x) => Number(x.value)); }
+    post('list', b, 'Gespeichert');
+  }
+  else if (act.startsWith('rm-')) {
+    const l = act.slice(3);
+    if (l === 'approved') return post('action', { type: 'unapprove', userId: v }, 'Entfernt');
+    const b = { list: l, op: 'remove' };
+    if (l === 'notes') b.name = v; else if (l === 'triggers') b.key = v; else if (l === 'schedules' || l === 'wbuttons') b.index = Number(v); else b.value = v;
+    post('list', b, 'Entfernt');
+  }
+});
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.id === 'gsel') run(() => openChat(el.value));
+  else if (el.id === 'msort') { mem.sort = el.value; mem.page = 0; loadMembers(); }
+  else if (el.dataset.lock) post('settings', { locks: { [el.dataset.lock]: el.checked } });
+  else if (el.dataset.script) post('settings', { scripts: { [el.dataset.script]: el.checked } });
+});
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'mq') { clearTimeout(memT); memT = setTimeout(() => { mem.q = e.target.value; mem.page = 0; loadMembers(); }, 300); }
+});
+
+init();
+</script>
+</body>
+</html>
